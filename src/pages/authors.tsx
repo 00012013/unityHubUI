@@ -5,12 +5,13 @@ import authorColumns from "../columns/author"
 import { DataTable } from "../components/data-table"
 import { buttonVariants } from "../components/ui/button"
 import { cn } from "../lib/utils"
+import { API_URL } from "../consts"
 
 export default function Authors() {
     const { data: authors } = useQuery({
         queryKey: ["books"],
         queryFn: async () => {
-            return (await axios.get("http://localhost:5058/api/books"))
+            return (await axios.get(`${API_URL}/api/authors`))
                 .data as Author[]
         },
     })

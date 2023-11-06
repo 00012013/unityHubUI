@@ -15,6 +15,8 @@ import {
     FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
+import { useRouter } from "@tanstack/react-router";
+import { API_URL } from "../consts";
 
 interface AuthorFormProps {
     editMode?: boolean
@@ -32,24 +34,28 @@ const formSchema = z.object({
 export function AuthorForm({ editMode, initialData }: AuthorFormProps) {
     // ...
     const queryClient = useQueryClient()
+    const arr = window.location.pathname.split("/")
+    const id = arr[arr.length - 1];
+    const router = useRouter();
     const { mutate, isPending } = useMutation({
         mutationKey: ["books", "new"],
         mutationFn: async (values: z.infer<typeof formSchema>) => {
-            if (editMode) {
+            if (!editMode) {
                 return await axios.post(
-                    "http://localhost:5058/api/authors",
+                    `${API_URL}/api/authors`,
                     values
                 )
             } else {
                 return await axios.put(
-                    "http://localhost:5058/api/authors/" +
-                        (initialData as Author).id,
+                    `${API_URL}/api/authors/` +
+                        id,
                     values
                 )
             }
         },
         onSuccess() {
             queryClient.invalidateQueries({ queryKey: ["authors"] })
+            router.navigate({to:"/author"});
         },
     })
     const form = useForm<z.infer<typeof formSchema>>({

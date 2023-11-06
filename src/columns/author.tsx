@@ -5,6 +5,7 @@ import axios from "axios"
 import { EditIcon, TrashIcon } from "lucide-react"
 import { Button, buttonVariants } from "../components/ui/button"
 import { cn } from "../lib/utils"
+import { API_URL } from "../consts"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -18,15 +19,27 @@ export type Payment = {
 const authorColumns: ColumnDef<Author>[] = [
     {
         accessorKey: "id",
-        header: "ID",
+        header: "No",
+        cell(props) {
+            return (
+                <p>
+                    {props.row.index + 1}
+                </p>
+            )
+        },
     },
     {
         accessorKey: "firstName",
         header: "Name",
     },
+    
     {
         accessorKey: "lastName",
         header: "Surname",
+    },
+    {
+        accessorKey: "age",
+        header: "Age",
     },
     {
         accessorKey: "Actions",
@@ -37,7 +50,7 @@ const authorColumns: ColumnDef<Author>[] = [
                 mutationKey: ["books", "delete", props.row.original.id],
                 mutationFn: async () => {
                     return axios.delete(
-                        "http://localhost:5058/api/authors/" +
+                        `${API_URL}/api/authors/` +
                             props.row.original.id
                     )
                 },
@@ -53,7 +66,7 @@ const authorColumns: ColumnDef<Author>[] = [
                         )}
                         to="/edit/author/$id"
                         params={{
-                            id: "1",
+                            id: String(props.row.original.id),
                         }}
                     >
                         <EditIcon />

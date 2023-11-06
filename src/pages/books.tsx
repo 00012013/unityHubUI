@@ -5,6 +5,7 @@ import bookColumns from "../columns/book"
 import { DataTable } from "../components/data-table"
 import { buttonVariants } from "../components/ui/button"
 import { cn } from "../lib/utils"
+import { API_URL } from "../consts"
 
 export default function Books() {
     // const books: Book[] = [
@@ -23,7 +24,7 @@ export default function Books() {
     const { data: books } = useQuery({
         queryKey: ["books"],
         queryFn: async () => {
-            return (await axios.get("http://localhost:5058/api/books"))
+            return (await axios.get(`${API_URL}/api/books`))
                 .data as Book[]
         },
     })

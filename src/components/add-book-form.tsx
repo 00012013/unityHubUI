@@ -1,7 +1,7 @@
 import * as z from "zod";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import axios from "axios"
 import { useForm } from "react-hook-form";
 import { Button } from "./ui/button";
@@ -16,6 +16,8 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {  useRouter } from "@tanstack/react-router";
+import { API_URL } from "../consts";
 
 interface BookFormProps {
     editMode?: boolean
@@ -33,24 +35,51 @@ const formSchema = z.object({
 export function BookForm({ editMode, initialData }: BookFormProps) {
     // ...
     const queryClient = useQueryClient()
+    const router = useRouter();
+    const {data:authors} = useQuery({
+        queryKey:["authors"],
+        queryFn: async () => {
+            return (await axios.get(`${API_URL}/api/authors`))
+                .data as Author[]
+        },
+    })
+    const arr = window.location.pathname.split("/")
+    const id = arr[arr.length - 1];
     const { mutate, isPending } = useMutation({
         mutationKey: ["books", "new"],
         mutationFn: async (values: z.infer<typeof formSchema>) => {
-            if (editMode) {
+            if (!editMode) {
                 return await axios.post(
-                    "http://localhost:5058/api/books",
-                    values
+                    `${API_URL}/api/books`,
+                    {
+                        title: values.title,
+                        publishYear: String(values.published_year),
+                        authorId: 2
+
+                        // "title": "sadsaas",
+                        // "publishYear": "string",
+                        // "authorId": 2
+                    }
                 )
             } else {
                 return await axios.put(
-                    "http://localhost:5058/api/books/" +
-                        (initialData as Book).id,
-                    values
+                    `${API_URL}/api/books/` +
+                    id,
+                        {
+                            title: values.title,
+                            publishYear: String(values.published_year),
+                            authorId: 2
+                            
+                            // "title": "sadsaas",
+                            // "publishYear": "string",
+                            // "authorId": 2
+                        }
                 )
             }
         },
         onSuccess() {
             queryClient.invalidateQueries({ queryKey: ["books"] })
+            router.navigate({to:"/book"});
         },
     })
     const form = useForm<z.infer<typeof formSchema>>({
@@ -59,7 +88,7 @@ export function BookForm({ editMode, initialData }: BookFormProps) {
             ...(initialData as object),
         },
     })
-
+    console.log(form.formState.errors);
     // 2. Define a submit handler.
     async function onSubmit(values: z.infer<typeof formSchema>) {
         await mutate(values)
@@ -125,15 +154,11 @@ export function BookForm({ editMode, initialData }: BookFormProps) {
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="John Doe">
-                                        John Doe
+                                   {authors?.map(author => (
+                                    <SelectItem value={String(author.id)}>
+                                        {author.firstName} {author.lastName}
                                     </SelectItem>
-                                    <SelectItem value="John Nash">
-                                        John Nash
-                                    </SelectItem>
-                                    <SelectItem value="Susan Doe">
-                                        Susan Doe
-                                    </SelectItem>
+                                   ))}
                                 </SelectContent>
                             </Select>
                             <FormMessage />
